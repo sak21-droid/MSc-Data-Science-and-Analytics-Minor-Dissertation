@@ -404,7 +404,7 @@ import matplotlib.pyplot as plt
 
 pixel_coords = [(20, 30), (40, 50), (60, 80),
                 (80, 100), (100, 120), (40, 200),
-                (60, 220), (100, 180), (120, 140), (70, 160)]   # 10 pixels
+                (60, 220), (100, 180), (120, 140), (70, 160)]   #
 
 ts_list = [video[:, r, c, 2] for (r, c) in pixel_coords]
 ts_array = np.array(ts_list)  
