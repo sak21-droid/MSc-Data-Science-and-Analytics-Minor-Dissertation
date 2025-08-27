@@ -1,1 +1,2 @@
 # MSc-Data-Science-and-Analytics-Minor-Dissertation
+The following repository contains code for all analyses of the three wave clips used for the project. Python was used for all visualizations and analysis of large-scale wave clips(Wave Clip 1 and Wave Clip 2), while R was used for full PCA of the small-scale wave dataset. The code uses the methodology outlined in the project and creates plots seen throughout the project.
