@@ -110,6 +110,7 @@ X_full_pca = pca_full.fit_transform(X)
 # === Reconstruct for various k-values ===
 fps = get_video_fps(video_path)
 k_values = [1, 5, 10, 20,50,100,200]
+all_recons={}
 
 for k in k_values:
     pca_k = PCA(n_components=k)
@@ -125,6 +126,7 @@ for k in k_values:
         rgb_frame = rgb_flat.reshape(H, W, 3)
         rgb_frame = np.clip(rgb_frame, 0, 255)
         rgb_recons.append(rgb_frame.astype(np.uint8))
+    all_recons[k]=rgb_recons
 
     output_path = os.path.join(output_dir, f"reconstructed_k{k}.mp4")
     save_video(rgb_recons, output_path, fps)
