@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 
 #CONFIG 
 video_path = os.path.expanduser("~/Downloads/wave1_clip_final_1080p.mp4")
-output_dir = os.path.expanduser("~/Downloads/wave_output")
+output_dir = os.path.expanduser("~/Downloads/Analysis_Wave_Clip_1")
 os.makedirs(output_dir, exist_ok=True)
-resize_dim = (256,144)
+resize_dim = (144,256)
+
 
 # HELPERS
 def get_video_fps(path):
@@ -174,13 +175,12 @@ for k in k_values:
     print(f"Temporal correlation PCA cumulative variance at k={k}: {cum_var_temporal[k-1]:.2f}%")
   
 
-# === COMBINED VARIANCE EXPLAINED PLOT ===
 import matplotlib.pyplot as plt
 import numpy as np
 
 k_values = [1, 5, 10, 20, 50, 100, 200, 500, 1000]
-temporal_variance = [51.41, 52.00, 52.61, 53.66, 56.26, 59.60, 64.56, 73.91, 82.74]
-v_domain_variance = [0.59, 1.91, 3.15, 5.35, 10.70, 17.59, 27.77, 46.84, 64.83]
+temporal_variance = [10.30, 35.36, 47.56, 57.94, 73.00, 84.02, 92.30, 97.26, 98.68]
+v_domain_variance = [10.16, 36.37, 49.28, 59.44, 73.88, 84.49, 92.52, 97.36, 98.73]
 
 plt.figure(figsize=(12, 8))
 
@@ -189,13 +189,13 @@ plt.plot(k_values, temporal_variance, 'o-', linewidth=3, markersize=8,
 plt.plot(k_values, v_domain_variance, 's-', linewidth=3, markersize=8, 
          label='V-Domain PCA', color='#A23B72', alpha=0.8)
 
-plt.annotate('51.41% at k=1', xy=(1, 51.41), xytext=(20, 65),
-            arrowprops=dict(arrowstyle='->', color='#2E86AB', alpha=0.7),
-            fontsize=11, color='#2E86AB', fontweight='bold')
+plt.annotate('Both methods ~10% at k=1', xy=(1, 10.2), xytext=(20, 25),
+            arrowprops=dict(arrowstyle='->', color='gray', alpha=0.7),
+            fontsize=11, color='gray', fontweight='bold')
 
-plt.annotate('Only 0.59% at k=1', xy=(1, 0.59), xytext=(50, 15),
-            arrowprops=dict(arrowstyle='->', color='#A23B72', alpha=0.7),
-            fontsize=11, color='#A23B72', fontweight='bold')
+plt.annotate('98.7% convergence', xy=(1000, 98.7), xytext=(300, 85),
+            arrowprops=dict(arrowstyle='->', color='darkgreen', alpha=0.7),
+            fontsize=11, color='darkgreen', fontweight='bold')
 
 plt.xlabel('Number of Components (k)', fontsize=14, fontweight='bold')
 plt.ylabel('Cumulative Variance Explained (%)', fontsize=14, fontweight='bold')
@@ -204,12 +204,12 @@ plt.title('Comparison: Temporal Correlation vs V-Domain PCA\nCumulative Variance
 
 plt.xscale('log')
 plt.xlim(0.8, 1200)
-plt.ylim(0, 90)
+plt.ylim(0, 105)
 
 plt.grid(True, alpha=0.3, linestyle='--')
 plt.legend(fontsize=12, loc='center right', frameon=True, fancybox=True, shadow=True)
 
-textstr = 'Temporal PCA captures 51% variance\nwith first component alone!'
+textstr = 'Temporal and V- Domain PCA both capture ~10% variance\nwith first component '
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.7)
 plt.text(0.02, 0.98, textstr, transform=plt.gca().transAxes, fontsize=11,
          verticalalignment='top', bbox=props)
@@ -246,9 +246,9 @@ plt.suptitle("First 16 Spatial Modes", fontsize=18, weight="bold")
 plt.subplots_adjust(left=0.02, right=0.98, top=0.92, bottom=0.02, 
                     wspace=-0.05, 
                     hspace=0.15)   
-plt.savefig(os.path.join(output_dir, "top12_spatial_modes_ultracompact.png"), dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(output_dir, "spatial_modes.png"), dpi=300, bbox_inches='tight')
 plt.close()
-print("Saved top 12 spatial modes in ultra-compact layout.")
+print("Saved first 16 spatial modes in output directory.")
 
 
 # === Seismic-style PCA temporal components  ===
@@ -285,10 +285,10 @@ for spine in ("left", "right", "top"):
     ax.spines[spine].set_visible(False)
 
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "temporal_components_seismic_fullpage.png"), dpi=300)
+plt.savefig(os.path.join(output_dir, "temporal_components.png"), dpi=300)
 plt.show()
 plt.close()
-print("Saved improved temporal PCA seismic plot.")
+print("Saved temporal PCA seismic plot in output directory")
 
 
 #Side-by-side comparison 
@@ -299,11 +299,11 @@ label_scale = 0.6
 label_color = (255, 255, 255)  # white text
 label_thick = 2
 
+
+compare_k_values=[1,5,10,20,50,100,200]
 for t in range(T):
     orig_frame = video[t]
-
-  
-    recon_frames = all_recons[k][t]
+    recon_frames = [all_recons[k][t] for k in compare_k_values]
     
     rotated_H = orig_frame.shape[0]
     spacer = np.ones((rotated_H, spacer_width, 3), dtype=np.uint8) * 255
@@ -324,7 +324,7 @@ for t in range(T):
 
 rotated_h, rotated_w, _ = frames_combo[0].shape  # swap height/width automatically
 out = cv2.VideoWriter(
-    os.path.join(output_dir, "comparison_video_all_k_rotated.mp4"),
+    os.path.join(output_dir, "comparison_video.mp4"),
     cv2.VideoWriter_fourcc(*'mp4v'),
     fps,
     (rotated_w, rotated_h)
@@ -332,7 +332,7 @@ out = cv2.VideoWriter(
 for frame in frames_combo:
     out.write(cv2.cvtColor(frame.astype(np.uint8), cv2.COLOR_RGB2BGR))
 out.release()
-print("Saved labeled comparison video (rotated to portrait).")
+print("Saved comparison video to output directory")
 
 
 #Comparison Grid
@@ -371,9 +371,9 @@ plt.suptitle("Original vs. Reconstructed Frames", fontsize=16)
 plt.tight_layout()
 plt.subplots_adjust(top=0.88, wspace=0.01)  
 
-plt.savefig(os.path.join(output_dir, "frame_comparison_grid_timestamp.png"), dpi=300)
+plt.savefig(os.path.join(output_dir, "comparison_grid.png"), dpi=300)
 plt.close()
-print("Saved frame comparison grid with timestamps for original frames.")
+print("Saved frame comparison grid in output directory.")
 
 
 
@@ -393,7 +393,9 @@ plt.legend()
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "center_pixel_rgb.png"))
 plt.close()
-print("Saved RGB center pixel time series.")
+print("Saved RGB center pixel time series in output directory")
+
+
 
 
 #10 Random Pixel Time Series
@@ -403,8 +405,8 @@ import matplotlib.pyplot as plt
 
 
 pixel_coords = [(20, 30), (40, 50), (60, 80),
-                (80, 100), (100, 120), (40, 200),
-                (60, 220), (100, 180), (120, 140), (70, 160)]   #
+                (80, 100), (100, 120), (40, 110),
+                (60, 70), (100, 15), (120, 140), (70, 90)]   #
 
 ts_list = [video[:, r, c, 2] for (r, c) in pixel_coords]
 ts_array = np.array(ts_list)  
@@ -428,8 +430,7 @@ axs[1].imshow(frame0, cmap='gray')
 axs[1].set_title("Pixel Locations")
 axs[1].axis('off')
 
-rot_coords = [(c, frame0.shape[0]-r-1) for (r, c) in pixel_coords]
-for i, (r, c) in enumerate(rot_coords):
+for i, (r, c) in enumerate(pixel_coords):
     axs[1].plot(c, r, 'o', color='white', markersize=10, 
                 markeredgecolor='black', markeredgewidth=2)
     axs[1].text(c+2, r, f"{i+1}", color="black", fontsize=9, weight="bold",
@@ -437,12 +438,7 @@ for i, (r, c) in enumerate(rot_coords):
                          edgecolor='black', alpha=0.8))
 
 plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "10 pixel time series"))
 plt.show()
-
-
-
-
-
-
-
-
+plt.close()
+print("Saved 10 pixel time series in output directory")
