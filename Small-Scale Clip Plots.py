@@ -8,7 +8,7 @@ import imageio
 
 # ==== CONFIG ====
 video_path = "C:/Users/l/Downloads/waveclip.mp4"
-output_dir = "C:/Users/l/Downloads/new_wave1_analysis"
+output_dir = "C:/Users/l/Downloads/smallscale_wave_analysis"
 os.makedirs(output_dir, exist_ok=True)
 fps = 30
 k_values = [1, 5, 10, 20, 50, 100]
@@ -103,12 +103,10 @@ print()
 def reconstruct_video(k):
     print(f"=== RECONSTRUCTING WITH k={k} COMPONENTS ===")
     
-    # Ensure k doesn't exceed available components
     k_actual = min(k, pca.n_components_)
     if k_actual != k:
         print(f"Warning: Reduced k from {k} to {k_actual} (max available)")
     
-    # Create output directory
     output_dir_k = os.path.join(output_dir, f"frames_k{k_actual:03d}")
     os.makedirs(output_dir_k, exist_ok=True)
     
@@ -155,7 +153,6 @@ for result in reconstruction_results:
 
 
 
-
 # === TOP 3 SPATIAL MODES ===
 print("Extracting top 3 spatial modes...")
 
@@ -179,7 +176,7 @@ for i in range(top_n):
     g_mode = mode_vec[n_pix:2*n_pix].reshape(height, width)
     b_mode = mode_vec[2*n_pix:3*n_pix].reshape(height, width)
     
-    gray_mode = 0.2989 * r_mode + 0.5870 * g_mode + 0.1140 * b_mode  # luminance
+    gray_mode = 0.2989 * r_mode + 0.5870 * g_mode + 0.1140 * b_mode  
     gray_mode = normalize_to_255(gray_mode)
     
     spatial_modes.append(gray_mode)
@@ -192,15 +189,13 @@ for i in range(top_n):
 
 plt.suptitle("Top 3 Spatial Modes", fontsize=16)
 plt.tight_layout()
-plt.subplots_adjust(top=0.8)  # space for suptitle
+plt.subplots_adjust(top=0.8)  
 
 plt.savefig(os.path.join(output_dir, "top3_spatial_modes.png"), dpi=300)
 plt.show()
 plt.close()
 
-print(" Saved top 3 spatial modes side-by-side .")
-
-
+print(" Saved top 3 spatial modes side-by-side in output directory.")
 
 
 
@@ -258,7 +253,7 @@ plt.savefig(os.path.join(output_dir, f"temporal_components_seismic_top{num_modes
 plt.show()
 plt.close()
 
-print(f"Saved seismic-style temporal PCA components plot (top {num_modes_to_plot})")
+print(f"Saved seismic-style temporal PCA components plot (first {num_modes_to_plot})")
 
 
 
@@ -302,12 +297,12 @@ plt.text(0.02, 0.98, textstr, transform=plt.gca().transAxes, fontsize=11,
 
 plt.tight_layout()
 
-plt.savefig(os.path.join(output_dir, "video_pca_variance_explained.png"),
+plt.savefig(os.path.join(output_dir, "vpca_variance_explained.png"),
             dpi=300, bbox_inches='tight')
 plt.show()
 plt.close()
 
-print(" Saved video PCA variance explained plot (log scale)")
+print(" PCA variance explained plot saved in output directory)")
 
 
 
@@ -349,9 +344,8 @@ for row, t in enumerate(compare_times):
 plt.suptitle("Original vs. Reconstructed Frames at Selected Times and k-values", 
              fontsize=14, y=0.95)
 plt.tight_layout()
-plt.subplots_adjust(top=0.88)  # leave space for suptitle
-plt.savefig(os.path.join(output_dir, "comparison_grid_updated.png"), dpi=150, bbox_inches='tight')
+plt.subplots_adjust(top=0.88)  
+plt.savefig(os.path.join(output_dir, "comparison_grid.png"), dpi=150, bbox_inches='tight')
 plt.show()
 
-print(" Updated comparison grid created and saved!")
-
+print(" comparison grid saved in output directory")
