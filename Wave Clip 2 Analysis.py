@@ -378,7 +378,7 @@ plt.suptitle("Original vs. Reconstructed Frames", fontsize=16)
 plt.tight_layout()
 plt.subplots_adjust(top=0.88, wspace=0.01)  # <<< reduced spacing
 
-plt.savefig(os.path.join(output_dir, "frame_comparison_grid_timestamp.png"), dpi=300)
+plt.savefig(os.path.join(output_dir, "frame_comparison_grid.png"), dpi=300)
 plt.close()
 print("Saved frame comparison grid in output directory.")
 
