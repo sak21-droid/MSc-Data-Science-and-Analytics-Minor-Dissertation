@@ -54,7 +54,7 @@ reconstruct_frame <- function(vec, height, width) {
   temp_file <- tempfile(fileext = ".png")
   
   img_array <- array(0, dim = c(height, width, 3))
-  img_array[,,1] <- t(r_mat) / 255  # PNG expects values 0-1, not 0-255
+  img_array[,,1] <- t(r_mat) / 255  
   img_array[,,2] <- t(g_mat) / 255
   img_array[,,3] <- t(b_mat) / 255
   
@@ -89,7 +89,6 @@ total_var <- sum(var_explained)
 cumvar <- cumsum(var_explained) / total_var * 100
 individual_var <- var_explained / total_var * 100
 
-# Print variance explained for k=1 to 10
 cat("\n=== VARIANCE EXPLAINED BY COMPONENTS ===\n")
 for (k in 1:min(10, length(individual_var))) {
   cat(sprintf("k=%2d: Individual = %6.2f%%, Cumulative = %6.2f%%\n", 
@@ -214,7 +213,7 @@ total_variance <- sum(individual_variance)
 individual_var_pct <- (individual_variance / total_variance) * 100
 
 # Create detailed table for PC 1-10
-cat("\n📊 INDIVIDUAL VARIANCE EXPLAINED BY PRINCIPAL COMPONENTS:\n")
+cat("\n INDIVIDUAL VARIANCE EXPLAINED BY PRINCIPAL COMPONENTS:\n")
 cat("=" %in% paste(rep("=", 65), collapse = ""), "\n")
 cat(sprintf("%-4s | %-15s | %-15s | %-15s\n", 
             "PC", "Eigenvalue", "Variance %", "Cumulative %"))
@@ -242,8 +241,8 @@ pc_variance_table <- data.frame(
 csv_path <- file.path(output_dir, "pc_variance_explained.csv")
 write.csv(pc_variance_table, csv_path, row.names = FALSE)
 
-cat(sprintf("\n✓ Variance table saved: %s\n", csv_path))
-cat("✓ Individual PC variance analysis complete!\n")
+cat(sprintf("\n Variance table saved: %s\n", csv_path))
+cat("Individual PC variance analysis completed \n")
 
 
 
