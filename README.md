@@ -5,7 +5,7 @@ https://uccireland-my.sharepoint.com/:f:/g/personal/f_osullivan_ucc_ie/EsJ56stvF
 
 
 
-###Contents
+### Contents
 
 Wave Clip 1 Analysis.py
 Python script performing PCA analysis and reconstruction of Wave Clip 1. 
@@ -22,7 +22,7 @@ R script performing PCA-based analysis and reconstruction on small-scale wave vi
 UCC Masters Dissertation Saksham Kheter Pal.pdf
 PDF version of the MSc thesis documenting the full methodology, theoretical background, experiments, results, and discussion.
 
-###Requirements
+### Requirements
 Python Scripts
 
 Python 3.10+
@@ -35,14 +35,14 @@ R 4.3+
 
 Packages: av, magick, png, irlba, ggplot2
 
-###Instructions
+### Instructions
 
 Ensure all required packages are installed.
 
 update the file paths in the code.
 
 
-###Notes
+### Notes
 
 Scripts have been tested on medium-scale video datasets; large videos may require more memory and computation time.
 
