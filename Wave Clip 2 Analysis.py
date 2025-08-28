@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 
 #CONFIG 
 video_path = os.path.expanduser("~/Downloads/wave2_clip_final_1080p.mov")
-output_dir = os.path.expanduser("~/Downloads/wave_output")
+output_dir = os.path.expanduser("~/Downloads/wave_Analysis_2")
 os.makedirs(output_dir, exist_ok=True)
 resize_dim = (256,144)
+
 
 # HELPERS
 def get_video_fps(path):
@@ -73,6 +74,7 @@ for t in range(T):
 
 # Normalize (standardize) projected video ===
 mean_image = projected.mean(axis=0)
+
 std_image = projected.std(axis=0)
 standardized = (projected - mean_image) / std_image
 
@@ -83,8 +85,8 @@ def normalize_to_255(img):
     norm_img = (img - img_min) / (img_max - img_min) * 255
     return norm_img
 
-mean_image_norm = normalize_to_255(mean_image)
-std_image_norm = normalize_to_255(std_image)
+mean_image_norm = np.rot90(normalize_to_255(mean_image))
+std_image_norm = np.rot90(normalize_to_255(std_image))
 
 save_image(mean_image_norm, os.path.join(output_dir, "mean_projected.png"), "Mean Projected")
 save_image(std_image_norm, os.path.join(output_dir, "std_projected.png"), "Std Dev Projected")
@@ -109,8 +111,8 @@ X_full_pca = pca_full.fit_transform(X)
 
 # === Reconstruct for various k-values ===
 fps = get_video_fps(video_path)
-k_values = [1, 5, 10, 20,50,100,200]
-all_recons={}
+k_values = [1, 5, 10, 20, 50, 100, 200]
+all_recons = {}
 
 for k in k_values:
     pca_k = PCA(n_components=k)
@@ -124,14 +126,17 @@ for k in k_values:
         flat = reconstructed[t].flatten()
         rgb_flat = (flat[:, None] * dominant_vec[None, :]) + mean_rgb  
         rgb_frame = rgb_flat.reshape(H, W, 3)
-        rgb_frame = np.clip(rgb_frame, 0, 255)
-        rgb_recons.append(rgb_frame.astype(np.uint8))
-    all_recons[k]=rgb_recons
+        rgb_frame = np.clip(rgb_frame, 0, 255).astype(np.uint8)
+
+        rgb_frame = np.rot90(rgb_frame, k=-1)
+
+        rgb_recons.append(rgb_frame)
+
+    all_recons[k] = rgb_recons
 
     output_path = os.path.join(output_dir, f"reconstructed_k{k}.mp4")
     save_video(rgb_recons, output_path, fps)
     print(f"Saved reconstructed video with k={k} to:", output_path)
-
 
 #Variance on V-Data
 V = standardized.reshape(T, -1)  # shape: (T, H*W)
@@ -246,9 +251,9 @@ plt.suptitle("First 16 Spatial Modes", fontsize=18, weight="bold")
 plt.subplots_adjust(left=0.02, right=0.98, top=0.92, bottom=0.02, 
                     wspace=-0.05, 
                     hspace=0.15)   
-plt.savefig(os.path.join(output_dir, "top12_spatial_modes_ultracompact.png"), dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(output_dir, "spatial modes.png"), dpi=300, bbox_inches='tight')
 plt.close()
-print("Saved top 12 spatial modes in ultra-compact layout.")
+print("Saved 16 spatial modes in output directory")
 
 
 # === Seismic-style PCA temporal components  ===
@@ -285,53 +290,47 @@ for spine in ("left", "right", "top"):
     ax.spines[spine].set_visible(False)
 
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "temporal_components_seismic_fullpage.png"), dpi=300)
+plt.savefig(os.path.join(output_dir, "temporal_components.png"), dpi=300)
 plt.show()
 plt.close()
-print("Saved improved temporal PCA seismic plot.")
+print("Saved temporal PCA seismic plot in Output directory")
 
-
-#Side-by-side comparison 
+# Side-by-side comparison video
 frames_combo = []
 spacer_width = 10
 label_font = cv2.FONT_HERSHEY_SIMPLEX
 label_scale = 0.6
-label_color = (255, 255, 255)  # white text
+label_color = (255, 255, 255)  
 label_thick = 2
 
+compare_k_values = [5, 20, 50, 100, 200]
+
 for t in range(T):
-    # Rotate original frame 90° right (portrait)
-    orig_frame = np.rot90(video[t], k=1)
+    orig_frame = np.rot90(video[t], k=-1)
+    recon_frames = [all_recons[k][t] for k in compare_k_values]
     
-    # Prepare reconstructed frames, rotated to match original
-    recon_frames = [np.rot90(all_recons[k][t], k=1) for k in k_values]
-    
-    # Update spacer to match rotated height
     rotated_H = orig_frame.shape[0]
     spacer = np.ones((rotated_H, spacer_width, 3), dtype=np.uint8) * 255
     
-    # Add label to original
     orig_labeled = orig_frame.copy()
     cv2.putText(orig_labeled, "Original", (10, 20), label_font, label_scale, label_color, label_thick)
     
-    # Add labels to reconstructed frames
     recon_labeled = []
     for idx, f in enumerate(recon_frames):
         f_copy = f.copy()
-        cv2.putText(f_copy, f"k={k_values[idx]}", (10, 20), label_font, label_scale, label_color, label_thick)
+        cv2.putText(f_copy, f"k={compare_k_values[idx]}", (10, 20), 
+                    label_font, label_scale, label_color, label_thick)
         recon_labeled.append(f_copy)
     
-    # Stack horizontally: Original + spacer + all reconstructions
     row = orig_labeled
     for f in recon_labeled:
         row = np.hstack([row, spacer, f])
     
     frames_combo.append(row)
 
-# Save video with updated dimensions
-rotated_h, rotated_w, _ = frames_combo[0].shape  # swap height/width automatically
+rotated_h, rotated_w, _ = frames_combo[0].shape  
 out = cv2.VideoWriter(
-    os.path.join(output_dir, "comparison_video_all_k_rotated.mp4"),
+    os.path.join(output_dir, "comparison_video.mp4"),
     cv2.VideoWriter_fourcc(*'mp4v'),
     fps,
     (rotated_w, rotated_h)
@@ -339,10 +338,9 @@ out = cv2.VideoWriter(
 for frame in frames_combo:
     out.write(cv2.cvtColor(frame.astype(np.uint8), cv2.COLOR_RGB2BGR))
 out.release()
-print("Saved labeled comparison video (rotated to portrait).")
+print("Saved labeled comparison video.")
 
 
-#Comparison Grid
 
 compare_k_values = [5, 20, 50, 100, 200]
 compare_times = [T // 4, T // 2, 3 * T // 4]  
@@ -369,7 +367,7 @@ for row, t in enumerate(compare_times):
         recon_frame = Xk_reconstructed[t].reshape(H, W) * std_image + mean_image
         rgb_flat = (recon_frame.flatten()[:, None] * dominant_vec[None, :]) + mean_rgb
         rgb_frame = np.clip(rgb_flat.reshape(H, W, 3), 0, 255).astype(np.uint8)
-        rgb_frame_rot = np.rot90(rgb_frame, k=-1)   # <<< rotate here
+        rgb_frame_rot = np.rot90(rgb_frame, k=-1)   
         axs[row, col + 1].imshow(rgb_frame_rot)
         axs[row, col + 1].axis("off")
         if row == 0:
@@ -382,14 +380,14 @@ plt.subplots_adjust(top=0.88, wspace=0.01)  # <<< reduced spacing
 
 plt.savefig(os.path.join(output_dir, "frame_comparison_grid_timestamp.png"), dpi=300)
 plt.close()
-print("Saved frame comparison grid with timestamps for original frames.")
+print("Saved frame comparison grid in output directory.")
 
 
 
 # === RGB CENTER PIXEL OVER TIME ===
 
 center_h, center_w = H // 2, W // 2
-rgb_center = video[:, center_h, center_w, :]  # shape (T, 3)
+rgb_center = video[:, center_h, center_w, :]  
 
 plt.figure(figsize=(10, 5))
 colors = ['red', 'green', 'blue']
@@ -433,7 +431,7 @@ axs[0].set_yticks([i*sep for i in range(len(pixel_coords))])
 axs[0].set_yticklabels([f"Pixel {i+1}" for i in range(len(pixel_coords))])
 
 frame0 = video[0, :, :, 2]
-frame0_rot = np.rot90(frame0,k=-1)  # rotate 90 degrees
+frame0_rot = np.rot90(frame0,k=-1)  
 axs[1].imshow(frame0_rot, cmap='gray')
 axs[1].set_title("Pixel Locations")
 axs[1].axis('off')
@@ -448,7 +446,6 @@ for i, (r, c) in enumerate(rot_coords):
 
 plt.tight_layout()
 plt.show()
-
 
 
 
