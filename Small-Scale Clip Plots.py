@@ -23,7 +23,6 @@ def read_frames(video_path):
         ret, frame = cap.read()
         if not ret:
             break
-        # Convert BGR to RGB
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frames.append(frame_rgb)
     
@@ -37,7 +36,6 @@ def flatten_frame(img, gamma=1.8):
     img_gamma = np.power(img_float, gamma) * 255
     img_gamma = np.clip(img_gamma, 0, 255).astype(np.uint8)
     
-    # Flatten RGB channels
     r = img_gamma[:, :, 0].flatten()
     g = img_gamma[:, :, 1].flatten()
     b = img_gamma[:, :, 2].flatten()
@@ -53,7 +51,6 @@ def reconstruct_frame(vec, height, width, gamma=1.8):
     g_vec = vec[n_pix:2*n_pix]
     b_vec = vec[2*n_pix:3*n_pix]
     
-    # Reverse gamma correction
     r_vec = np.clip(r_vec, 0, 255).astype(np.float32) / 255.0
     g_vec = np.clip(g_vec, 0, 255).astype(np.float32) / 255.0
     b_vec = np.clip(b_vec, 0, 255).astype(np.float32) / 255.0
@@ -62,12 +59,11 @@ def reconstruct_frame(vec, height, width, gamma=1.8):
     g_vec = np.power(g_vec, 1/gamma) * 255
     b_vec = np.power(b_vec, 1/gamma) * 255
     
-    # Reshape to image dimensions
     r_mat = np.clip(r_vec.reshape(height, width), 0, 255).astype(np.uint8)
     g_mat = np.clip(g_vec.reshape(height, width), 0, 255).astype(np.uint8)
     b_mat = np.clip(b_vec.reshape(height, width), 0, 255).astype(np.uint8)
     
-    # Combine channels
+
     reconstructed = np.stack([r_mat, g_mat, b_mat], axis=-1)
     return reconstructed
 
